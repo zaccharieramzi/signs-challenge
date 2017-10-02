@@ -1,8 +1,11 @@
+import csv
+import os.path as op
+
 import numpy as np
 import tensorflow as tf
 
 
-def read_and_decode(filename_queue, shape=(244, 244, 3)):
+def read_and_decode(filename_queue, shape=(224, 224, 3)):
     """Read and decode a specific queue.
 
     This function takes as input a queue and deals with one example from it. It
@@ -29,15 +32,15 @@ def read_and_decode(filename_queue, shape=(244, 244, 3)):
     feature = tf.cast(feature, tf.float32)
 
     # Convert label from a scalar uint8 tensor to an int32 scalar.
-    label = tf.cast(features["label"], tf.float32)
-    # label = tf.one_hot(label, 2)  # since we only have two classes, one label
-    # is enough.
+    label = tf.one_hot(features["label"], 2)
+    label = tf.cast(label, tf.float32)
+
 
     return feature, label
 
 
 def inputs(
-    tfrecord_files, batch_size, shape=(244, 244, 3), num_epochs=None,
+    tfrecord_files, batch_size, shape=(224, 224, 3), num_epochs=None,
     n_threads=2
 ):
     """Read input data num_epochs times.
@@ -74,3 +77,97 @@ def inputs(
             min_after_dequeue=1000)
 
     return features, sparse_labels
+
+
+def summary_writer(log_name, model_name, log_path, sess):
+    """Create a summary writer."""
+    if log_name is None:
+        log_name = model_name
+    log_path = op.join(log_path, log_name)
+    writer = tf.summary.FileWriter(log_path, sess.graph)
+    return writer
+
+
+def metrics(ground_truth, predictions, suffix=""):
+    """Create tf ops for positive metrics and add them to tf summary.
+
+    The metrics are in order:
+        - accuracy
+        - precision
+        - recall
+        - F1 score
+    """
+    ones_like_actuals = tf.ones_like(ground_truth)
+    zeros_like_actuals = tf.zeros_like(ground_truth)
+    ones_like_predictions = tf.ones_like(predictions)
+    zeros_like_predictions = tf.zeros_like(predictions)
+
+    tp = tf.reduce_sum(
+        tf.cast(
+          tf.logical_and(
+            tf.equal(ground_truth, ones_like_actuals),
+            tf.equal(predictions, ones_like_predictions)
+          ),
+          "float"
+        )
+    )
+
+    tn = tf.reduce_sum(
+        tf.cast(
+          tf.logical_and(
+            tf.equal(ground_truth, zeros_like_actuals),
+            tf.equal(predictions, zeros_like_predictions)
+          ),
+          "float"
+        )
+    )
+
+    fp = tf.reduce_sum(
+        tf.cast(
+          tf.logical_and(
+            tf.equal(ground_truth, zeros_like_actuals),
+            tf.equal(predictions, ones_like_predictions)
+          ),
+          "float"
+        )
+    )
+
+    fn = tf.reduce_sum(
+        tf.cast(
+          tf.logical_and(
+            tf.equal(ground_truth, ones_like_actuals),
+            tf.equal(predictions, zeros_like_predictions)
+          ),
+          "float"
+        )
+    )
+
+    tpr = tp/(tp + fn)
+
+    accuracy = (tp + tn)/(tp + fp + fn + tn)
+
+    recall = tpr
+    recall = tf.where(tf.is_nan(recall), tf.ones_like(recall), recall)
+    precision = tp/(tp + fp)
+    precision = tf.where(
+        tf.is_nan(precision), tf.ones_like(precision), precision)
+    f1_score = (2 * (precision * recall)) / (precision + recall)
+    f1_score = tf.where(tf.is_nan(f1_score), tf.zeros_like(f1_score), f1_score)
+
+    tf.summary.scalar("accuracy{}".format(suffix), accuracy)
+    tf.summary.scalar("precision{}".format(suffix), precision)
+    tf.summary.scalar("recall{}".format(suffix), recall)
+    tf.summary.scalar("f1_score{}".format(suffix), f1_score)
+
+    return accuracy, precision, recall, f1_score
+
+
+def records(train_csv, test_csv):
+    """List the train and test tfrecords."""
+    with open(train_csv) as in_file:
+        csv_reader = csv.reader(in_file)
+        train_files = next(csv_reader)
+    with open(test_csv) as in_file:
+        csv_reader = csv.reader(in_file)
+        test_files = next(csv_reader)
+    return train_files, test_files
