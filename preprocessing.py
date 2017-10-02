@@ -10,7 +10,7 @@ def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
-def pad_image(image, shape=(244, 244, 3)):
+def pad_image(image, shape=(224, 224, 3)):
     padded_image = np.zeros(shape)
     first_dim = image.shape[0]
     first_dim = first_dim - (first_dim % 2)
