@@ -105,3 +105,6 @@ data/
 
 # Model weights
 model/
+
+# Tensorflow logs
+logs/
