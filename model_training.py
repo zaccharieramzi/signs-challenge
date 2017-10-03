@@ -61,7 +61,7 @@ model_name = "vgg-fine-tuned"
 log_path = "logs"
 log_name = None
 summary_rate = 35
-saving_rate = 35
+saving_rate = 10
 
 
 tf.reset_default_graph()
