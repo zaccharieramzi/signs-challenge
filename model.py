@@ -179,7 +179,6 @@ def vgg(
     last_name = "fc{fc_id}".format(fc_id=fc_id + series_id + 3)
     fc_dim = fc["fc_dim"]
     y = fc_layer(h, fc_dim, 2, last_name, reuse=reuse)
-    y = tf.nn.softmax(y, name="prob")
     return y
 
 
@@ -203,5 +202,4 @@ def zsc(
         h = fc_layer(h, in_size, fc_dim, name, reuse=reuse)
     last_name = "fc{fc_id}".format(fc_id=fc_id + series_id + 3)
     y = fc_layer(h, fc_dim, 2, last_name, reuse=reuse)
-    y = tf.nn.softmax(y, name="prob")
     return y
