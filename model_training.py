@@ -85,8 +85,8 @@ with tf.name_scope("test"):
 
 
 # When training vgg-16, we fine tune the last layer.
-#train_var_names = ["fc8/fc8_weights:0", "fc8/fc8_biases:0"]
-#train_vars = [var for var in tf.trainable_variables() if var.name in train_var_names]
+# train_var_names = ["fc8/fc8_weights:0", "fc8/fc8_biases:0"]
+# train_vars = [var for var in tf.trainable_variables() if var.name in train_var_names]
 
 
 with tf.name_scope("loss"):
@@ -107,12 +107,12 @@ with tf.name_scope("loss"):
 # Metrics
 with tf.name_scope("metrics"):
     # Train
-    ground_truth = tf.argmax(y_)
-    predictions = tf.argmax(y)
+    ground_truth = tf.argmax(y_, axis=1)
+    predictions = tf.argmax(y, axis=1)
     accuracy, _, _, _ = metrics(ground_truth, predictions)
     # Test
-    ground_truth_test = tf.argmax(y_test_)
-    predictions_test = tf.argmax(y_test)
+    ground_truth_test = tf.argmax(y_test_, axis=1)
+    predictions_test = tf.argmax(y_test, axis=1)
     metrics(ground_truth_test, predictions_test, "_test")
 
 
