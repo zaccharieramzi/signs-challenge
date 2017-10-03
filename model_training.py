@@ -52,6 +52,7 @@ batch_size = 128
 n_epochs = 2
 n_threads = 2
 l_rate = 0.01
+keep_prob = 0.5
 # Values
 data_dict_path = "models/vgg16.npy"
 # data_dict = np.load(data_dict_path, encoding="latin1").item()
@@ -73,7 +74,7 @@ with tf.name_scope("train"):
         num_epochs=n_epochs, n_threads=n_threads)
     y_ = tf.reshape(y_, [-1, 2])
 
-    y = zsc(x, architecture_conv, architecture_fc)
+    y = zsc(x, architecture_conv, architecture_fc, keep_prob=keep_prob)
 
 with tf.name_scope("test"):
     x_test, y_test_ = inputs(

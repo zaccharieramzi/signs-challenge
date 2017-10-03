@@ -75,7 +75,7 @@ def constant_conv_layer(x, data_dict, name, reuse=None):
             return relu
 
 
-def fc_layer(x, in_size, fc_dim, name, reuse=None):
+def fc_layer(x, in_size, fc_dim, name, reuse=None, keep_prob=1.0):
     """Create a fully-connected layer."""
     with tf.variable_scope(name, reuse=reuse):
         weights = weight_variable(
@@ -84,6 +84,7 @@ def fc_layer(x, in_size, fc_dim, name, reuse=None):
 
         x = tf.reshape(x, [-1, in_size])
         y = tf.nn.bias_add(tf.matmul(x, weights), biases)
+        y = tf.nn.dropout(y, keep_prob)
     return y
 
 
@@ -183,7 +184,7 @@ def vgg(
 
 
 def zsc(
-    x, architecture_conv, architecture_fc, reuse=None
+    x, architecture_conv, architecture_fc, reuse=None, keep_prob=1.0
 ):
     """
     Create the zsc network.
@@ -199,7 +200,8 @@ def zsc(
         in_size = fc["in_size"]
         fc_dim = fc["fc_dim"]
         name = "fc{fc_id}".format(fc_id=fc_id + series_id + 2)
-        h = fc_layer(h, in_size, fc_dim, name, reuse=reuse)
+        h = fc_layer(
+            h, in_size, fc_dim, name, reuse=reuse, keep_prob=keep_prob)
     last_name = "fc{fc_id}".format(fc_id=fc_id + series_id + 3)
     y = fc_layer(h, fc_dim, 2, last_name, reuse=reuse)
     return y
