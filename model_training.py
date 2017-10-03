@@ -49,7 +49,7 @@ architecture_fc = [
 # Parameters
 # Training
 batch_size = 128
-n_epochs = 2
+n_epochs = 4
 n_threads = 2
 l_rate = 0.01
 keep_prob = 0.5
